@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BusinessWith.Us</title>
+
+<style>
+/* ======== GLOBAL ======== */
+* {margin:0;padding:0;box-sizing:border-box;font-family:"Segoe UI",sans-serif;}
+body {background: linear-gradient(135deg,#0f2027,#203a43,#2c5364); color:#fff;}
+h1,h2,h3 {margin-bottom:10px;}
+button {cursor:pointer;}
+a {color:inherit;text-decoration:none;}
+
+/* ======== HEADER / LANDING ======== */
+header {height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;}
+header h1 {font-size:3rem;margin-bottom:10px;}
+header p {opacity:0.8;margin-bottom:20px;}
+.btn {padding:12px 25px;background:#ff9800;color:#000;border:none;border-radius:30px;font-weight:bold;}
+
+/* ======== SECTIONS ======== */
+section {padding:60px 10%;}
+.section-title {text-align:center;font-size:2rem;margin-bottom:40px;}
+
+/* ======== SERVICES ======== */
+.services {display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;}
+.service-card {background: rgba(255,255,255,0.08);padding:25px;border-radius:15px;text-align:center;transition:.3s;}
+.service-card:hover{transform:translateY(-8px);background: rgba(255,255,255,0.15);}
+
+/* ======== TEAM ======== */
+.team{display:flex;justify-content:center;gap:30px;flex-wrap:wrap;}
+.member{text-align:center;}
+.member img{width:180px;border-radius:15px;margin-bottom:10px;}
+
+/* ======== DASHBOARD ======== */
+.dashboard{display:none;min-height:100vh;}
+.sidebar{width:220px;background:#111;padding:20px;position:fixed;height:100%;}
+.sidebar h3{margin-bottom:20px;}
+.sidebar ul{list-style:none;}
+.sidebar ul li{padding:10px 0;opacity:.8;cursor:pointer;}
+.sidebar ul li:hover{opacity:1;}
+.main{margin-left:240px;padding:30px;}
+.post{background:rgba(255,255,255,0.08);padding:20px;border-radius:15px;margin-bottom:20px;}
+.post button{margin-right:10px;background:none;border:none;color:#ff9800;cursor:pointer;}
+
+/* ======== POST FORM ======== */
+#newPost{margin-bottom:20px;}
+#newPost textarea{width:100%;padding:10px;border-radius:10px;border:none;margin-bottom:10px;}
+#newPost button{padding:8px 15px;border:none;border-radius:10px;background:#ff9800;color:#000;font-weight:bold;}
+</style>
+</head>
+
+<body>
+
+<!-- ======== LANDING ======== -->
+<header id="landing">
+  <h1>Welcome to BusinessWith.Us</h1>
+  <p>We turn ideas into digital solutions</p>
+  <button class="btn" onclick="showLogin()">Login / Sign Up</button>
+</header>
+
+<section id="services">
+  <h2 class="section-title">Our Services</h2>
+  <div class="services">
+    <div class="service-card">Writing</div>
+    <div class="service-card">Video Editing</div>
+    <div class="service-card">Web Development</div>
+    <div class="service-card">Music</div>
+    <div class="service-card">OSINT</div>
+    <div class="service-card">Digital Forensics</div>
+    <div class="service-card">PCB Design</div>
+    <div class="service-card">Market Analysis</div>
+  </div>
+</section>
+
+<section id="team">
+  <h2 class="section-title">Our Team</h2>
+  <div class="team">
+    <div class="member">
+      <img src="team.jpg" alt="Sumit">
+      <h3>Sumit</h3>
+    </div>
+    <div class="member">
+      <img src="team.jpg" alt="Priyam">
+      <h3>Priyam</h3>
+    </div>
+    <div class="member">
+      <img src="team.jpg" alt="Akash">
+      <h3>Akash</h3>
+    </div>
+  </div>
+</section>
+
+<!-- ======== LOGIN FORM ======== -->
+<section id="loginSection" style="display:none;text-align:center;padding:50px;">
+  <h2>Login / Sign Up</h2>
+  <input type="text" id="username" placeholder="Enter Username" style="padding:10px;width:250px;border-radius:10px;border:none;margin-bottom:10px;">
+  <br>
+  <button class="btn" onclick="loginUser()">Login</button>
+</section>
+
+<!-- ======== DASHBOARD ======== -->
+<div class="dashboard" id="dashboard">
+  <div class="sidebar">
+    <h3>BusinessWith.Us</h3>
+    <ul>
+      <li onclick="showDashboard()">Dashboard</li>
+      <li onclick="showHire()">Hire Us</li>
+      <li onclick="showProfile()">Profile</li>
+      <li onclick="openInsta()">Instagram DM</li>
+      <li onclick="logout()">Logout</li>
+    </ul>
+  </div>
+
+  <div class="main" id="mainContent">
+    <h2>Dashboard</h2>
+    <div id="newPost" style="display:none;">
+      <textarea id="postText" placeholder="Post something..."></textarea>
+      <button onclick="addPost()">Post</button>
+    </div>
+    <div id="postsContainer"></div>
+  </div>
+</div>
+
+<script>
+/* ======== STATE ======== */
+let user = null;
+let role = null;
+let posts = JSON.parse(localStorage.getItem("posts")) || [
+  {author:"Admin", content:"Welcome to BusinessWith.Us!", likes:0, comments:[]}
+];
+
+/* ======== LANDING → LOGIN ======== */
+function showLogin(){
+  document.getElementById("landing").style.display="none";
+  document.getElementById("services").style.display="none";
+  document.getElementById("team").style.display="none";
+  document.getElementById("loginSection").style.display="block";
+}
+
+/* ======== LOGIN FUNCTION ======== */
+function loginUser(){
+  let uname = document.getElementById("username").value.trim();
+  if(!uname){alert("Enter Username"); return;}
+  user = uname;
+  role = (user.toLowerCase()==="admin")?"admin":"user";
+  document.getElementById("loginSection").style.display="none";
+  document.getElementById("dashboard").style.display="flex";
+  renderPosts();
+  if(role==="admin") document.getElementById("newPost").style.display="block";
+}
+
+/* ======== LOGOUT ======== */
+function logout(){location.reload();}
+
+/* ======== INSTAGRAM LINK ======== */
+function openInsta(){window.open("https://www.instagram.com/businesswith.us","_blank");}
+
+/* ======== POSTS ======== */
+function renderPosts(){
+  const container = document.getElementById("postsContainer");
+  container.innerHTML="";
+  posts.forEach((p,i)=>{
+    let div = document.createElement("div");
+    div.className="post";
+    div.innerHTML=`<h3>${p.author}</h3>
+                   <p>${p.content}</p>
+                   <button onclick="likePost(${i})">❤️ ${p.likes}</button>
+                   <button onclick="commentPost(${i})">💬 ${p.comments.length}</button>`;
+    container.appendChild(div);
+  });
+  localStorage.setItem("posts",JSON.stringify(posts));
+}
+
+function addPost(){
+  let text = document.getElementById("postText").value.trim();
+  if(!text){alert("Enter post"); return;}
+  posts.unshift({author:user, content:text, likes:0, comments:[]});
+  document.getElementById("postText").value="";
+  renderPosts();
+}
+
+function likePost(i){posts[i].likes++; renderPosts();}
+
+function commentPost(i){
+  let c = prompt("Enter comment:");
+  if(c){posts[i].comments.push(c); renderPosts();}
+}
+
+/* ======== DASHBOARD NAV ======== */
+function showDashboard(){renderPosts();}
+function showHire(){document.getElementById("mainContent").innerHTML="<h2>Hire Us</h2><p>Send us a message via Instagram DM or describe your project here.</p>";}
+function showProfile(){document.getElementById("mainContent").innerHTML=`<h2>Profile</h2><p>Username: ${user}</p><p>Role: ${role}</p>`;}
+</script>
+
+</body>
+</html>
